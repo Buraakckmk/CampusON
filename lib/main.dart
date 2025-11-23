@@ -19,11 +19,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CampusON',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: const WelcomeScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeModeNotifier,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'CampusON',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: mode,
+          home: const WelcomeScreen(),
+        );
+      },
     );
   }
 }

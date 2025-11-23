@@ -4,6 +4,7 @@ import '../../core/theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../home/home_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -50,13 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 40),
-              Text(
-                "ogrenci.universite.edu.tr",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.primary,
-                  letterSpacing: 1.2,
-                ),
-              ),
               const SizedBox(height: 30),
               CustomTextField(
                 hintText: "Email (@universite.edu.tr)",
@@ -85,7 +79,14 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
                   child: const Text(
                     "Şifremi Unuttum?",
                     style: TextStyle(color: AppColors.textGrey),
@@ -123,12 +124,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      final credential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+      final auth = FirebaseAuth.instance;
 
-      if (credential.user == null) {
+      final credential = await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = credential.user;
+      if (user == null) {
         _showErrorDialog(
             'Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.');
+        return;
+      }
+
+      if (!user.emailVerified) {
+        _showUnverifiedDialog(user);
         return;
       }
 
@@ -151,6 +162,92 @@ class _LoginScreenState extends State<LoginScreen> {
       _showErrorDialog(
           'Beklenmeyen bir hata oluştu. Daha sonra tekrar deneyin.');
     }
+  }
+
+  void _showUnverifiedDialog(User user) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 200),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.highlight_off,
+                  color: Colors.red,
+                  size: 60,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Hatalı Giriş',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Email adresiniz henüz doğrulanmamış. Lütfen mail kutunuzu kontrol edip doğrulama linkine tıklayın.',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(
+                        'Kapat',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await user.sendEmailVerification();
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
+                          _showErrorDialog(
+                              'Doğrulama maili tekrar gönderildi. Lütfen mail kutunuzu kontrol edin.');
+                        } catch (_) {
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
+                          _showErrorDialog(
+                              'Doğrulama maili gönderilirken bir hata oluştu. Daha sonra tekrar deneyin.');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: Text(
+                          'Tekrar gönder',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showErrorDialog(String message) {

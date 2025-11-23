@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'dart:ui'; // For PathEffect if needed, but using simpler BorderSide here or CustomPainter
 import 'dart:io';
+import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../models/user_model.dart';
+import '../home/home_screen.dart';
+import 'email_verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -16,6 +22,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _termsAccepted = false;
+  bool _isLoading = false;
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -48,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Avatar Picker
+            // Avatar Picker (optional)
             GestureDetector(
               onTap: _showImageSourceDialog,
               child: Stack(
@@ -79,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            
+
             // Name Field
             CustomTextField(
               hintText: "Ad Soyad",
@@ -88,13 +95,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Upload ID Area (Dashed Border)
-            GestureDetector(
-              onTap: _pickStudentDocument,
-              child: _buildDashedUploadContainer(),
-            ),
+            // Upload ID Area (optional / informational)
+            // GestureDetector(
+            //   onTap: _pickStudentDocument,
+            //   child: _buildDashedUploadContainer(),
+            // ),
             
-            const SizedBox(height: 20),
+            // const SizedBox(height: 20),
             
             CustomTextField(
               hintText: "Email",
@@ -146,6 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: CustomButton(
                 text: "KAYDI TAMAMLA",
                 onPressed: _onRegisterPressed,
+                isLoading: _isLoading,
               ),
             ),
           ],
@@ -226,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _profileImage = File(picked.path);
       });
     } catch (e) {
-      _showSnackBar('Profil fotoğrafı seçilirken bir hata oluştu.');
+      _showErrorDialog('Profil fotoğrafı seçilirken bir hata oluştu.');
     }
   }
 
@@ -243,60 +251,170 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _studentDocument = result.files.first;
       });
     } catch (e) {
-      _showSnackBar('Öğrenci belgesi seçilirken bir hata oluştu.');
+      _showErrorDialog('Öğrenci belgesi seçilirken bir hata oluştu.');
     }
   }
 
-  void _onRegisterPressed() {
+  Future<void> _onRegisterPressed() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      _showSnackBar('Lütfen tüm alanları doldurun.');
+      _showErrorDialog('Lütfen tüm alanları doldurun.');
       return;
     }
 
     // edu mail kontrolü
     if (!email.toLowerCase().endsWith('.edu') &&
         !email.toLowerCase().contains('.edu.')) {
-      _showSnackBar('Sadece .edu uzantılı öğrenci mailleri ile kayıt olunabilir.');
+      _showErrorDialog('Sadece .edu uzantılı öğrenci mailleri ile kayıt olunabilir.');
       return;
     }
 
     if (password.length < 6) {
-      _showSnackBar('Şifre en az 6 karakter olmalıdır.');
+      _showErrorDialog('Şifre en az 6 karakter olmalıdır.');
       return;
     }
 
     if (password != confirmPassword) {
-      _showSnackBar('Şifreler eşleşmiyor.');
-      return;
-    }
-
-    if (_profileImage == null) {
-      _showSnackBar('Lütfen profil fotoğrafı ekleyin.');
-      return;
-    }
-
-    if (_studentDocument == null) {
-      _showSnackBar('Lütfen öğrenci belgenizi yükleyin.');
+      _showErrorDialog('Şifreler eşleşmiyor.');
       return;
     }
 
     if (!_termsAccepted) {
-      _showSnackBar('Lütfen sözleşmeyi onaylayın.');
+      _showErrorDialog('Lütfen sözleşmeyi onaylayın.');
       return;
     }
 
-    // Burada ileride Firebase register + Storage upload işlemleri eklenecek.
-    _showSnackBar('Validation başarılı, backend entegrasyonu eklenmeli.');
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final auth = FirebaseAuth.instance;
+      final firestore = FirebaseFirestore.instance;
+
+      // Create user in Firebase Auth
+      final credential = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = credential.user;
+      if (user == null) {
+        _showErrorDialog('Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+        return;
+      }
+
+      // Send email verification
+      await user.sendEmailVerification();
+
+      // Prepare user data for Firestore
+      final universityDomain = UserModel.parseDomain(email);
+
+      await firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'email': email,
+        'name': name,
+        'university_domain': universityDomain,
+        'is_verified': false,
+        'level': 1,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EmailVerificationScreen(
+            name: name,
+            email: email,
+          ),
+        ),
+        (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = 'Kayıt başarısız. Lütfen bilgilerinizi kontrol edin.';
+      if (e.code == 'email-already-in-use') {
+        message = 'Bu email ile zaten bir hesap var.';
+      } else if (e.code == 'weak-password') {
+        message = 'Şifre çok zayıf, lütfen daha güçlü bir şifre girin.';
+      } else if (e.code == 'invalid-email') {
+        message = 'Geçersiz email adresi.';
+      }
+      _showErrorDialog(message);
+    } on TimeoutException {
+      _showErrorDialog(
+          'Sunucuya bağlanırken zaman aşımı oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
+    } catch (e) {
+      _showErrorDialog('Kayıt başarısız: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 200),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.highlight_off,
+                  color: Colors.red,
+                  size: 60,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Hata',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                    child: Text(
+                      'Tamam',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

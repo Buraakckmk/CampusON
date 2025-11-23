@@ -11,6 +11,9 @@ class AppColors {
 }
 
 class AppTheme {
+  static final ValueNotifier<ThemeMode> themeModeNotifier =
+      ValueNotifier(ThemeMode.dark);
+
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
@@ -40,10 +43,49 @@ class AppTheme {
           fontSize: 14,
           color: AppColors.textGrey,
         ),
-        labelLarge: GoogleFonts.poppins( // Used for buttons
+        labelLarge: GoogleFonts.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textWhite,
+        ),
+      ),
+      useMaterial3: true,
+    );
+  }
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: Colors.white,
+      primaryColor: AppColors.primary,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        background: Colors.white,
+        surface: Color(0xFFF1F5F9),
+      ),
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.montserrat(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+        displayMedium: GoogleFonts.montserrat(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+        bodyLarge: GoogleFonts.poppins(
+          fontSize: 16,
+          color: Colors.black87,
+        ),
+        bodyMedium: GoogleFonts.poppins(
+          fontSize: 14,
+          color: Colors.grey[700],
+        ),
+        labelLarge: GoogleFonts.poppins(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
       useMaterial3: true,

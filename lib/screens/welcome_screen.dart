@@ -11,15 +11,8 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              Color(0xFF1E293B), // Slightly lighter navy center
-              AppColors.background,
-            ],
-          ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
         ),
         child: SafeArea(
           child: Padding(
@@ -28,52 +21,19 @@ class WelcomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(flex: 2),
-                // Glowing Logo Placeholder
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primary, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.6),
-                        blurRadius: 40,
-                        spreadRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "C",
-                      style: TextStyle(
-                        fontSize: 80,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 20,
-                            color: AppColors.primary,
-                            offset: Offset(0, 0),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // App Name
-                Text(
-                  "Campus ON",
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    letterSpacing: 1.5,
-                    fontWeight: FontWeight.w300,
+                // Custom homepage logo image
+                SizedBox(
+                  height: 140,
+                  width: 140,
+                  child: Image.asset(
+                    'homepagelogo.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
                 const SizedBox(height: 60),
                 // Slogan
                 Text(
-                  "Kampüs Modunu Aç",
+                  "Kampüs'ün Ayağına geldi",
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const Spacer(flex: 1),
@@ -81,7 +41,7 @@ class WelcomeScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: CustomButton(
-                    text: "Login",
+                    text: "Giriş Yap",
                     onPressed: () {
                       Navigator.push(
                         context,

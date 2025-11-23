@@ -54,7 +54,7 @@ class DefaultFirebaseOptions {
     appId: '1:546375919490:android:89a4d928be3c9adf87919b',
     messagingSenderId: '546375919490',
     projectId: 'campuson-95fa1',
-    storageBucket: 'campuson-95fa1.firebasestorage.app',
+    storageBucket: 'campuson-95fa1.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -62,7 +62,7 @@ class DefaultFirebaseOptions {
     appId: '1:546375919490:ios:b6501cbae60bb0fc87919b',
     messagingSenderId: '546375919490',
     projectId: 'campuson-95fa1',
-    storageBucket: 'campuson-95fa1.firebasestorage.app',
+    storageBucket: 'campuson-95fa1.appspot.com',
     iosBundleId: 'com.bura',
   );
 }
