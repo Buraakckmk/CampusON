@@ -51,21 +51,27 @@ class PostRegisterWelcomeScreen extends StatelessWidget {
                       icon: const Icon(Icons.close, color: Colors.white70),
                     ),
                   ],
-                ),
+                ), 
                 const SizedBox(height: 16),
-                // Top icon
+                // Top CampusON icon
                 Container(
                   height: 80,
                   width: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.5),
+                    ),
                     color: AppColors.glassWhite,
                   ),
-                  child: const Icon(
-                    Icons.celebration,
-                    color: AppColors.primary,
-                    size: 40,
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Image.asset(
+                        'Campus.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

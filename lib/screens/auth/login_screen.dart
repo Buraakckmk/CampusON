@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme.dart';
+import '../../core/app_strings.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../home/home_screen.dart';
@@ -27,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStringsProvider.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -47,20 +49,20 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.school, size: 60, color: AppColors.primary),
               const SizedBox(height: 10),
               Text(
-                "CampusON",
+                strings.appName,
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 40),
               const SizedBox(height: 30),
               CustomTextField(
-                hintText: "Email (@universite.edu.tr)",
+                hintText: strings.loginEmailHint,
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
               ),
               const SizedBox(height: 20),
               CustomTextField(
-                hintText: "Password",
+                hintText: strings.loginPasswordHint,
                 isPassword: !_isPasswordVisible,
                 prefixIcon: Icons.lock_outline,
                 controller: _passwordController,
@@ -87,9 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     );
                   },
-                  child: const Text(
-                    "Şifremi Unuttum?",
-                    style: TextStyle(color: AppColors.textGrey),
+                  child: Text(
+                    strings.loginForgotPassword,
+                    style: const TextStyle(color: AppColors.textGrey),
                   ),
                 ),
               ),
@@ -97,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CustomButton(
-                  text: "Giriş Yap",
+                  text: strings.loginButton,
                   onPressed: _onLoginPressed,
                 ),
               ),
@@ -109,17 +111,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _onLoginPressed() async {
+    final strings = AppStringsProvider.of(context);
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      _showErrorDialog('Lütfen email ve şifreyi girin.');
+      _showErrorDialog(strings.loginErrorFillEmailPassword);
       return;
     }
 
     if (!email.toLowerCase().contains('.edu')) {
-      _showErrorDialog(
-          'Sadece .edu uzantılı öğrenci mailleri ile giriş yapılabilir.');
+      _showErrorDialog(strings.loginErrorEduOnly);
       return;
     }
 
@@ -149,22 +151,22 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } on FirebaseAuthException catch (e) {
-      String message = 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.';
+      String message = strings.loginErrorGeneric;
       if (e.code == 'user-not-found') {
-        message = 'Bu email ile kayıtlı bir hesap bulunamadı.';
+        message = strings.loginErrorUserNotFound;
       } else if (e.code == 'wrong-password') {
-        message = 'Şifre hatalı.';
+        message = strings.loginErrorWrongPassword;
       } else if (e.code == 'invalid-email') {
-        message = 'Geçersiz email adresi.';
+        message = strings.loginErrorInvalidEmail;
       }
       _showErrorDialog(message);
     } catch (_) {
-      _showErrorDialog(
-          'Beklenmeyen bir hata oluştu. Daha sonra tekrar deneyin.');
+      _showErrorDialog(strings.loginErrorUnexpected);
     }
   }
 
   void _showUnverifiedDialog(User user) {
+    final strings = AppStringsProvider.of(context);
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -185,18 +187,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   size: 60,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Hatalı Giriş',
-                  style: TextStyle(
+                Text(
+                  strings.loginDialogTitleError,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Email adresiniz henüz doğrulanmamış. Lütfen mail kutunuzu kontrol edip doğrulama linkine tıklayın.',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                Text(
+                  strings.emailVerificationStillUnverified,
+                  style:
+                      const TextStyle(fontSize: 14, color: Colors.black87),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -205,9 +208,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
-                        'Kapat',
-                        style: TextStyle(color: Colors.red),
+                      child: Text(
+                        strings.dialogButtonClose,
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                     ElevatedButton(
@@ -217,12 +220,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!mounted) return;
                           Navigator.of(context).pop();
                           _showErrorDialog(
-                              'Doğrulama maili tekrar gönderildi. Lütfen mail kutunuzu kontrol edin.');
+                              strings.loginDialogResendSuccess);
                         } catch (_) {
                           if (!mounted) return;
                           Navigator.of(context).pop();
                           _showErrorDialog(
-                              'Doğrulama maili gönderilirken bir hata oluştu. Daha sonra tekrar deneyin.');
+                              strings.loginDialogResendError);
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -231,11 +234,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 8.0),
                         child: Text(
-                          'Tekrar gönder',
+                          strings.loginDialogResendTitle,
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
@@ -251,6 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showErrorDialog(String message) {
+    final strings = AppStringsProvider.of(context);
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -295,12 +299,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0, vertical: 8.0),
                     child: Text(
-                      'Tamam',
-                      style: TextStyle(color: Colors.white),
+                      strings.dialogButtonOk,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),

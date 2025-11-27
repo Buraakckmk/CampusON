@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme.dart';
+import '../../core/app_strings.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -22,15 +23,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _onSendPressed() async {
+    final strings = AppStringsProvider.of(context);
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      _showInfoDialog('Lütfen email adresinizi girin.');
+      _showInfoDialog(strings.forgotPasswordErrorEmpty);
       return;
     }
 
     if (!email.toLowerCase().contains('.edu')) {
-      _showInfoDialog('Sadece .edu uzantılı öğrenci mailleri için şifre sıfırlama yapılabilir.');
+      _showInfoDialog(strings.forgotPasswordErrorEduOnly);
       return;
     }
 
@@ -42,20 +44,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
       if (!mounted) return;
-      _showInfoDialog(
-        'Şifre sıfırlama bağlantısını "${email}" adresine gönderdik. '
-        'Lütfen mail kutunuzu (ve spam klasörünü) kontrol edin.',
-      );
+      _showInfoDialog(strings.forgotPasswordLinkSent(email));
     } on FirebaseAuthException catch (e) {
-      String message = 'Şifre sıfırlama isteği gönderilemedi.';
+      String message = strings.forgotPasswordErrorGeneric;
       if (e.code == 'user-not-found') {
-        message = 'Bu email ile kayıtlı bir kullanıcı bulunamadı.';
+        message = strings.forgotPasswordErrorUserNotFound;
       } else if (e.code == 'invalid-email') {
-        message = 'Geçersiz email adresi.';
+        message = strings.forgotPasswordErrorInvalidEmail;
       }
       _showInfoDialog(message);
     } catch (e) {
-      _showInfoDialog('Beklenmeyen bir hata oluştu: $e');
+      _showInfoDialog(strings.forgotPasswordUnexpectedError(e));
     } finally {
       if (mounted) {
         setState(() {
@@ -66,6 +65,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _showInfoDialog(String message) {
+    final strings = AppStringsProvider.of(context);
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -85,9 +85,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   size: 60,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Bilgi',
-                  style: TextStyle(
+                Text(
+                  strings.infoDialogTitle,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -108,11 +108,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                     child: Text(
-                      'Tamam',
-                      style: TextStyle(color: Colors.white),
+                      strings.dialogButtonOk,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -126,11 +126,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStringsProvider.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Şifremi Unuttum'),
+        title: Text(strings.forgotPasswordTitle),
       ),
       body: SafeArea(
         child: Padding(
@@ -140,7 +141,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             children: [
               const SizedBox(height: 20),
               Text(
-                'Email adresini gir',
+                strings.forgotPasswordHeading,
                 style: Theme.of(context)
                     .textTheme
                     .displayMedium
@@ -148,12 +149,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Şifre sıfırlama bağlantısı sadece üniversite (.edu) maillerine gönderilecektir.',
+                strings.forgotPasswordInfo,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                hintText: 'Email (@universite.edu.tr)',
+                hintText: strings.forgotPasswordEmailHint,
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
@@ -162,7 +163,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CustomButton(
-                  text: 'Bağlantıyı Gönder',
+                  text: strings.forgotPasswordSendLink,
                   isLoading: _isLoading,
                   onPressed: _onSendPressed,
                 ),

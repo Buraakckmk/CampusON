@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme.dart';
+import '../../core/app_strings.dart';
 import '../post_register_welcome_screen.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   bool _isResending = false;
 
   Future<void> _checkVerification() async {
+    final strings = AppStringsProvider.of(context);
     setState(() {
       _isChecking = true;
     });
@@ -41,12 +43,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           (route) => false,
         );
       } else {
-        _showInfoDialog(
-          'Email adresiniz hâlâ doğrulanmamış. Lütfen mail kutunuzu kontrol edip doğrulama linkine tıklayın.',
-        );
+        _showInfoDialog(strings.emailVerificationStillUnverified);
       }
     } catch (e) {
-      _showInfoDialog('Doğrulama durumu kontrol edilirken bir hata oluştu: $e');
+      _showInfoDialog(strings.emailVerificationCheckError(e));
     } finally {
       if (mounted) {
         setState(() {
@@ -57,6 +57,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _resendVerification() async {
+    final strings = AppStringsProvider.of(context);
     setState(() {
       _isResending = true;
     });
@@ -65,12 +66,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
-        _showInfoDialog('Doğrulama maili tekrar gönderildi. Lütfen mail kutunuzu kontrol edin.');
+        _showInfoDialog(strings.emailVerificationResendSuccess);
       } else {
-        _showInfoDialog('Email adresiniz zaten doğrulanmış olabilir.');
+        _showInfoDialog(strings.emailVerificationAlreadyVerified);
       }
     } catch (e) {
-      _showInfoDialog('Doğrulama maili gönderilirken bir hata oluştu: $e');
+      _showInfoDialog(strings.emailVerificationResendError(e));
     } finally {
       if (mounted) {
         setState(() {
@@ -81,6 +82,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   void _showInfoDialog(String message) {
+    final strings = AppStringsProvider.of(context);
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -100,9 +102,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   size: 60,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Bilgi',
-                  style: TextStyle(
+                Text(
+                  strings.emailVerificationInfoTitle,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -123,11 +125,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                     child: Text(
-                      'Tamam',
-                      style: TextStyle(color: Colors.white),
+                      strings.dialogButtonOk,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -141,12 +143,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStringsProvider.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text('Email Doğrulama'),
+        title: Text(strings.emailVerificationTitle),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -155,26 +158,26 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           children: [
             const SizedBox(height: 20),
             Text(
-              'Merhaba, ${widget.name}',
+              strings.helloName(widget.name),
               style: Theme.of(context).textTheme.displayMedium,
             ),
             const SizedBox(height: 12),
             Text(
-              '"${widget.email}" adresine bir doğrulama maili gönderdik. Lütfen mail kutunu kontrol edip linke tıkla.',
+              strings.verificationSentTo(widget.email),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             Text(
-              'Adımlar:',
+              strings.emailVerificationStepsTitle,
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            const Text('- Mail kutunu ve spam klasörünü kontrol et.'),
-            const Text('- "Email doğrula" linkine tıkla.'),
-            const Text('- Sonra bu ekrana dönüp aşağıdaki butona bas.'),
+            Text(strings.emailVerificationStep1),
+            Text(strings.emailVerificationStep2),
+            Text(strings.emailVerificationStep3),
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -190,7 +193,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                   child: Text(
-                    _isChecking ? 'Kontrol ediliyor...' : 'Doğruladım, tekrar kontrol et',
+                    _isChecking
+                        ? strings.emailVerificationChecking
+                        : strings.emailVerificationCheckButton,
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
@@ -212,8 +217,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                   child: Text(
                     _isResending
-                        ? 'Tekrar gönderiliyor...'
-                        : 'Maili yeniden gönder',
+                        ? strings.emailVerificationResending
+                        : strings.emailVerificationResendButton,
                     style: const TextStyle(color: AppColors.primary),
                   ),
                 ),

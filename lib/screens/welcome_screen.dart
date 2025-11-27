@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
+import '../core/app_strings.dart';
 import '../widgets/custom_button.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
@@ -9,10 +10,11 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStringsProvider.of(context);
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
+        decoration: const BoxDecoration(
+          color: Colors.white,
         ),
         child: SafeArea(
           child: Padding(
@@ -23,25 +25,20 @@ class WelcomeScreen extends StatelessWidget {
                 const Spacer(flex: 2),
                 // Custom homepage logo image
                 SizedBox(
-                  height: 140,
-                  width: 140,
+                  height: 260,
+                  width: 260,
                   child: Image.asset(
-                    'homepagelogo.png',
+                    'Campus.png',
                     fit: BoxFit.contain,
                   ),
                 ),
                 const SizedBox(height: 60),
-                // Slogan
-                Text(
-                  "Kampüs'ün Ayağına geldi",
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
                 const Spacer(flex: 1),
                 // Buttons
                 SizedBox(
                   width: double.infinity,
                   child: CustomButton(
-                    text: "Giriş Yap",
+                    text: strings.welcomeLoginButton,
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -53,15 +50,30 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  child: CustomButton(
-                    text: "Kayıt Ol",
-                    isOutlined: true,
+                  child: OutlinedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
                       );
                     },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primary, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      strings.welcomeRegisterButton,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
                 const Spacer(flex: 1),

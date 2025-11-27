@@ -25,14 +25,25 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
     - homepagelogo.png
+    - Campus.png
 
 flutter_icons:
   android: true
   ios: true
-  image_path: "appstorelogo.png"
+  image_path: "campusapp.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "Campus.png"
+  android: true
+  ios: true
+  android_12:
+    image: "Campus.png"
+    icon_background_color: "#FFFFFF"

@@ -23,6 +23,8 @@ class LoginPreferencesScreen extends StatelessWidget {
       },
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Giriş Tercihleri'),
@@ -56,20 +58,32 @@ class LoginPreferencesScreen extends StatelessWidget {
                   return Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.glassWhite,
+                      color: isDark
+                          ? AppColors.glassWhite
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(
+                        color:
+                            isDark ? Colors.white12 : Colors.grey.shade300,
+                      ),
                     ),
                     child: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Colors.black26,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade300,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.devices_other,
-                              color: Colors.white70, size: 20),
+                          child: Icon(
+                            Icons.devices_other,
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.grey.shade800,
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -78,8 +92,10 @@ class LoginPreferencesScreen extends StatelessWidget {
                             children: [
                               Text(
                                 d['name'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white
+                                      : Colors.black87,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -87,23 +103,32 @@ class LoginPreferencesScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 '${d['platform']} • ${d['location']}',
-                                style: const TextStyle(
-                                  color: Colors.white70,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey.shade700,
                                   fontSize: 12,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 d['lastActive'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white54,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.grey.shade600,
                                   fontSize: 11,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.more_vert, color: Colors.white38, size: 18),
+                        Icon(
+                          Icons.more_vert,
+                          color:
+                              isDark ? Colors.white38 : Colors.grey.shade500,
+                          size: 18,
+                        ),
                       ],
                     ),
                   );

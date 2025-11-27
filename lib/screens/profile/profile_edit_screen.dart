@@ -26,10 +26,62 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
 
+  final List<String> _departments = [
+    'Bilgisayar Mühendisliği',
+    'Yazılım Mühendisliği',
+    'Elektrik-Elektronik Mühendisliği',
+    'Endüstri Mühendisliği',
+    'Makine Mühendisliği',
+    'İnşaat Mühendisliği',
+    'Mimarlık',
+    'İşletme',
+    'İktisat',
+    'Psikoloji',
+    'Hukuk',
+  ];
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  Future<void> _selectDepartment() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white10),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: _departments.length,
+            separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.white12),
+            itemBuilder: (context, index) {
+              final dept = _departments[index];
+              return ListTile(
+                title: Text(
+                  dept,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                onTap: () => Navigator.pop(context, dept),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    if (selected != null && selected.isNotEmpty) {
+      setState(() {
+        _departmentController.text = selected;
+      });
+    }
   }
 
   @override
@@ -167,7 +219,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // close dialog
+                    Navigator.of(this.context).pop(); // close edit screen
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
@@ -267,6 +322,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       hintText: 'Bölüm / Program (isteğe bağlı)',
                       prefixIcon: Icons.school_outlined,
                       controller: _departmentController,
+                      readOnly: true,
+                      onTap: _selectDepartment,
                     ),
                     const SizedBox(height: 30),
                     SizedBox(

@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme.dart';
+import '../../core/app_strings.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../models/user_model.dart';
@@ -44,11 +45,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStringsProvider.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("KAYIT OL"),
+        title: Text(strings.registerTitle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -89,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             // Name Field
             CustomTextField(
-              hintText: "Ad Soyad",
+              hintText: strings.registerNameHint,
               prefixIcon: Icons.person_outline,
               controller: _nameController,
             ),
@@ -104,21 +106,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // const SizedBox(height: 20),
             
             CustomTextField(
-              hintText: "Email",
+              hintText: strings.registerEmailHint,
               prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
               controller: _emailController,
             ),
             const SizedBox(height: 20),
             CustomTextField(
-              hintText: "Şifre",
+              hintText: strings.registerPasswordHint,
               isPassword: true,
               prefixIcon: Icons.lock_outline,
               controller: _passwordController,
             ),
             const SizedBox(height: 20),
             CustomTextField(
-              hintText: "Şifre Tekrar",
+              hintText: strings.registerPasswordConfirmHint,
               isPassword: true,
               prefixIcon: Icons.lock_outline,
               controller: _confirmPasswordController,
@@ -140,7 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    "Sözleşmeyi okudum, onaylıyorum.",
+                    strings.registerTermsText,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
@@ -151,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             SizedBox(
               width: double.infinity,
               child: CustomButton(
-                text: "KAYDI TAMAMLA",
+                text: strings.registerCompleteButton,
                 onPressed: _onRegisterPressed,
                 isLoading: _isLoading,
               ),
@@ -256,35 +258,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _onRegisterPressed() async {
+    final strings = AppStringsProvider.of(context);
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      _showErrorDialog('Lütfen tüm alanları doldurun.');
+      _showErrorDialog(strings.registerErrorFillAll);
       return;
     }
 
     // edu mail kontrolü
     if (!email.toLowerCase().endsWith('.edu') &&
         !email.toLowerCase().contains('.edu.')) {
-      _showErrorDialog('Sadece .edu uzantılı öğrenci mailleri ile kayıt olunabilir.');
+      _showErrorDialog(strings.registerErrorEduOnly);
       return;
     }
 
     if (password.length < 6) {
-      _showErrorDialog('Şifre en az 6 karakter olmalıdır.');
+      _showErrorDialog(strings.registerErrorPasswordShort);
       return;
     }
 
     if (password != confirmPassword) {
-      _showErrorDialog('Şifreler eşleşmiyor.');
+      _showErrorDialog(strings.registerErrorPasswordsNotMatch);
       return;
     }
 
     if (!_termsAccepted) {
-      _showErrorDialog('Lütfen sözleşmeyi onaylayın.');
+      _showErrorDialog(strings.registerErrorAcceptTerms);
       return;
     }
 
@@ -304,7 +307,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final user = credential.user;
       if (user == null) {
-        _showErrorDialog('Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+        _showErrorDialog(strings.registerErrorGeneric);
         return;
       }
 
@@ -336,20 +339,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {
-      String message = 'Kayıt başarısız. Lütfen bilgilerinizi kontrol edin.';
+      String message = strings.registerErrorFailed;
       if (e.code == 'email-already-in-use') {
-        message = 'Bu email ile zaten bir hesap var.';
+        message = strings.registerErrorEmailInUse;
       } else if (e.code == 'weak-password') {
-        message = 'Şifre çok zayıf, lütfen daha güçlü bir şifre girin.';
+        message = strings.registerErrorWeakPassword;
       } else if (e.code == 'invalid-email') {
-        message = 'Geçersiz email adresi.';
+        message = strings.registerErrorInvalidEmail;
       }
       _showErrorDialog(message);
     } on TimeoutException {
-      _showErrorDialog(
-          'Sunucuya bağlanırken zaman aşımı oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
+      _showErrorDialog(strings.registerErrorTimeout);
     } catch (e) {
-      _showErrorDialog('Kayıt başarısız: $e');
+      _showErrorDialog('${strings.registerErrorFailed}: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -360,6 +362,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _showErrorDialog(String message) {
+    final strings = AppStringsProvider.of(context);
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -379,9 +382,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   size: 60,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Hata',
-                  style: TextStyle(
+                Text(
+                  strings.registerDialogTitleError,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -402,11 +405,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                     child: Text(
-                      'Tamam',
-                      style: TextStyle(color: Colors.white),
+                      strings.dialogButtonOk,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),

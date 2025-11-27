@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme.dart';
+import '../../core/app_strings.dart';
 import 'change_password_screen.dart';
 import 'login_preferences_screen.dart';
+import '../welcome_screen.dart';
 
 class SecuritySettingsScreen extends StatefulWidget {
   const SecuritySettingsScreen({Key? key}) : super(key: key);
@@ -23,9 +26,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStringsProvider.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ayarlar'),
+        title: Text(strings.settingsTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -36,7 +40,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
           children: [
             // Güvenlik bölümü
             Text(
-              'Güvenlik',
+              strings.settingsSecuritySection,
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
@@ -122,7 +126,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
             // Genel bölüm
             Text(
-              'Genel',
+              strings.settingsGeneralSection,
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
@@ -140,7 +144,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         : Colors.black54,
                   ),
                   title: Text(
-                    'Dil',
+                    strings.settingsLanguage,
                     style: TextStyle(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.white
@@ -157,10 +161,63 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       fontSize: 12,
                     ),
                   ),
-                  trailing: const Icon(Icons.chevron_right,
-                      color: Colors.white38, size: 18),
-                  onTap: () {
-                    // Şimdilik sadece Türkçe seçili, ileride dil listesini açabiliriz
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: Colors.white38,
+                    size: 18,
+                  ),
+                  onTap: () async {
+                    final selected = await showModalBottomSheet<String>(
+                      context: context,
+                      backgroundColor: Theme.of(context).cardColor,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      builder: (context) {
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.language),
+                              title: Text(
+                                strings.settingsLanguageTurkish,
+                              ),
+                              onTap: () => Navigator.pop(
+                                  context, strings.settingsLanguageTurkish),
+                            ),
+                            if (isDark)
+                              const Divider(height: 1),
+                            ListTile(
+                              leading: const Icon(Icons.language),
+                              title: Text(
+                                strings.settingsLanguageEnglish,
+                              ),
+                              onTap: () => Navigator.pop(
+                                  context, strings.settingsLanguageEnglish),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (selected != null) {
+                      setState(() {
+                        _selectedLanguage = selected;
+                      });
+
+                      if (selected == strings.settingsLanguageTurkish) {
+                        AppLanguageController.languageNotifier.value =
+                            AppLanguage.tr;
+                      } else {
+                        AppLanguageController.languageNotifier.value =
+                            AppLanguage.en;
+                      }
+                    }
                   },
                 ),
                 const Divider(color: Colors.white24, height: 1),
@@ -205,7 +262,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
             // Destek bölümü
             Text(
-              'Destek',
+              strings.settingsSupportSection,
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
@@ -270,6 +327,39 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  if (!mounted) return;
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
+                    (route) => false,
+                  );
+                },
+                child: const Text(
+                  'Çıkış yap',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
