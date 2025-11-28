@@ -97,13 +97,20 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
       });
 
       // Üst kısma yakın, küçük bir floating bildirim göster
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final bgColor = isDark ? Colors.white : Colors.black87;
+      final textColor = isDark ? Colors.black87 : Colors.white;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$targetName ağınıza eklendi.'),
+          content: Text(
+            '$targetName ağınıza eklendi.',
+            style: TextStyle(color: textColor),
+          ),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 80, 16, 0),
           elevation: 4,
-          backgroundColor: Colors.green.shade600,
+          backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

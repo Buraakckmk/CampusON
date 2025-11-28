@@ -1157,15 +1157,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               _buildProfileStat(
-                label: 'Ağındaki kişi',
-                value: _followersCount.toString(),
+                label: 'Ağım',
+                value: (_followersCount + _followingCount).toString(),
                 icon: Icons.group_outlined,
-              ),
-              const SizedBox(width: 8),
-              _buildProfileStat(
-                label: 'Ağına eklediklerin',
-                value: _followingCount.toString(),
-                icon: Icons.person_add_alt_1_outlined,
               ),
               const SizedBox(width: 8),
               _buildProfileStat(

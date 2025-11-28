@@ -16,8 +16,10 @@ class ProfileEditScreen extends StatefulWidget {
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _departmentController = TextEditingController();
+  final _bioController = TextEditingController();
 
   final ImagePicker _imagePicker = ImagePicker();
   File? _newProfileImage;
@@ -86,8 +88,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _departmentController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -109,8 +113,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       final data = doc.data() ?? {};
 
-      _nameController.text = (data['name'] ?? '') as String;
+      final fullName = (data['name'] ?? '') as String;
+      final parts = fullName.trim().split(RegExp(r'\s+'));
+      String firstName = '';
+      String lastName = '';
+      if (parts.isNotEmpty) {
+        firstName = parts.first;
+      }
+      if (parts.length > 1) {
+        lastName = parts.sublist(1).join(' ');
+      }
+
+      _firstNameController.text = firstName;
+      _lastNameController.text = lastName;
       _departmentController.text = (data['department'] ?? '') as String;
+      _bioController.text = (data['bio'] ?? '') as String;
       _photoUrl = data['photoUrl'] as String?;
     } catch (e) {
       _showInfoDialog('Profil bilgileri yüklenirken bir hata oluştu: $e');
@@ -124,11 +141,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   Future<void> _saveProfile() async {
-    final name = _nameController.text.trim();
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
     final department = _departmentController.text.trim();
+    final bio = _bioController.text.trim();
 
-    if (name.isEmpty) {
-      _showInfoDialog('İsim alanı boş bırakılamaz.');
+    if (firstName.isEmpty) {
+      _showInfoDialog('Ad alanı boş bırakılamaz.');
       return;
     }
 
@@ -156,10 +175,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         photoUrl = await storageRef.getDownloadURL();
       }
 
+      final fullName = [firstName, lastName]
+          .where((part) => part.isNotEmpty)
+          .join(' ');
+
       final updateData = <String, dynamic>{
-        'name': name,
+        'name': fullName,
+        'firstName': firstName,
+        'lastName': lastName,
         'department': department,
       };
+
+      updateData['bio'] = bio;
 
       if (photoUrl != null) {
         updateData['photoUrl'] = photoUrl;
@@ -312,10 +339,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           ?.copyWith(fontSize: 22),
                     ),
                     const SizedBox(height: 24),
-                    CustomTextField(
-                      hintText: 'Ad Soyad',
-                      prefixIcon: Icons.person_outline,
-                      controller: _nameController,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomTextField(
+                            hintText: 'Ad',
+                            prefixIcon: Icons.person_outline,
+                            controller: _firstNameController,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CustomTextField(
+                            hintText: 'Soyad',
+                            prefixIcon: Icons.person_outline,
+                            controller: _lastNameController,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
@@ -324,6 +365,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       controller: _departmentController,
                       readOnly: true,
                       onTap: _selectDepartment,
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      hintText: 'Hakkımda (isteğe bağlı)',
+                      prefixIcon: Icons.info_outline,
+                      controller: _bioController,
+                      keyboardType: TextInputType.multiline,
                     ),
                     const SizedBox(height: 30),
                     SizedBox(

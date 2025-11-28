@@ -8,6 +8,7 @@ class AppColors {
   static const Color textWhite = Colors.white;
   static const Color textGrey = Color(0xFF94A3B8); // Light Grey (Slate 400)
   static const Color error = Color(0xFFEF4444);
+  static const Color darkBackground = Color(0xFF121212);
 }
 
 class AppTheme {

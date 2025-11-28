@@ -25,10 +25,10 @@ class WelcomeScreen extends StatelessWidget {
                 const Spacer(flex: 2),
                 // Custom homepage logo image
                 SizedBox(
-                  height: 260,
-                  width: 260,
+                  height: 240,
+                  width: 240,
                   child: Image.asset(
-                    'Campus.png',
+                    'campusapp.png',
                     fit: BoxFit.contain,
                   ),
                 ),
