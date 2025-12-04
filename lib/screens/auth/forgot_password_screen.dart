@@ -70,8 +70,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       context: context,
       barrierDismissible: true,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Colors.black : Colors.white,
           insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 200),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Padding(
@@ -79,24 +80,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.info_outline,
-                  color: AppColors.primary,
+                  color: isDark ? Colors.white : AppColors.primary,
                   size: 60,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   strings.infoDialogTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   message,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),

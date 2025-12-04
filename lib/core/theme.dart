@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const Color background = Color(0xFF0F172A); // Deep Navy
+  static const Color background = Colors.black; // Pure black for dark mode
   static const Color primary = Color(0xFF2F80ED); // Electric Blue
   static const Color glassWhite = Color(0x1AFFFFFF); // White with low opacity (10%)
   static const Color textWhite = Colors.white;

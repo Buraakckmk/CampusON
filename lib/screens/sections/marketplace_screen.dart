@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../widgets/custom_button.dart';
 import '../profile/public_profile_screen.dart';
 import '../chat/chat_screen.dart';
 
@@ -65,15 +66,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: isDark
-            ? const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                ),
-              )
-            : const BoxDecoration(color: Colors.white),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.black : Colors.white,
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -387,15 +382,9 @@ class MarketplaceDetailScreen extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
-                        ),
+                      child: CustomButton(
+                        text: 'Mesaj gönder',
+                        isOutlined: true,
                         onPressed: () {
                           if (ownerId == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -417,37 +406,15 @@ class MarketplaceDetailScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        child: const Text(
-                          'Mesaj gönder',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
-                        ),
+                      child: CustomButton(
+                        text: 'Satın almak istiyorum',
                         onPressed: () {
                           // TODO: Satın alma isteği akışı buraya bağlanacak.
                         },
-                        child: const Text(
-                          'Satın almak istiyorum',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                       ),
                     ),
                   ],

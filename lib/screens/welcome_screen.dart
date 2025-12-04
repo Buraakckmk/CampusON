@@ -11,10 +11,11 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = AppStringsProvider.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: isDark ? Colors.black : Colors.white,
         ),
         child: SafeArea(
           child: Padding(

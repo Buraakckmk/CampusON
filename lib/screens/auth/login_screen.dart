@@ -171,8 +171,9 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       barrierDismissible: true,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Colors.black : Colors.white,
           insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 200),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -181,25 +182,27 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.highlight_off,
-                  color: Colors.red,
+                  color: isDark ? Colors.redAccent : Colors.red,
                   size: 60,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   strings.loginDialogTitleError,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   strings.emailVerificationStillUnverified,
-                  style:
-                      const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -259,8 +262,9 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       barrierDismissible: true,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Colors.black : Colors.white,
           insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 200),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -270,24 +274,27 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.highlight_off,
-                  color: Colors.red,
+                  color: isDark ? Colors.redAccent : Colors.red,
                   size: 60,
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Hatalı Giriş',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   message,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),

@@ -96,23 +96,34 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         _addedUserIds.add(targetUserId);
       });
 
-      // Üst kısma yakın, küçük bir floating bildirim göster
-      final isDark = Theme.of(context).brightness == Brightness.dark;
-      final bgColor = isDark ? Colors.white : Colors.black87;
-      final textColor = isDark ? Colors.black87 : Colors.white;
-
+      // Üst tarafta siyah arka planlı, beyaz yazılı bildirim göster
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '$targetName ağınıza eklendi.',
-            style: TextStyle(color: textColor),
-          ),
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(16, 80, 16, 0),
+          margin: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+          backgroundColor: Colors.black,
           elevation: 4,
-          backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+          ),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(
+                Icons.check_circle,
+                color: Colors.white,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Ağınıza eklendi',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -172,15 +183,9 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: isDark
-            ? const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                ),
-              )
-            : const BoxDecoration(color: Colors.white),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.black : Colors.white,
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -382,7 +387,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                                               },
                                         child: Text(
                                           _addedUserIds.contains(userId)
-                                              ? 'Eklendi'
+                                              ? 'Ağınıza eklendi'
                                               : 'Ağına ekle',
                                           style: TextStyle(
                                             color: _addedUserIds.contains(userId)

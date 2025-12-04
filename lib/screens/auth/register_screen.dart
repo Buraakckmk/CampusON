@@ -13,6 +13,8 @@ import '../../widgets/custom_text_field.dart';
 import '../../models/user_model.dart';
 import '../home/home_screen.dart';
 import 'email_verification_screen.dart';
+import '../../data/universities.dart';
+import '../../data/departments.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -22,12 +24,24 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  int _currentStep = 0;
   bool _termsAccepted = false;
   bool _isLoading = false;
-  final _nameController = TextEditingController();
+
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  String? _selectedUniversity;
+  String? _selectedDepartment;
+  String? _selectedGender;
+  
+  // Search controllers for bottom sheets
+  final _universitySearchController = TextEditingController();
+  final _departmentSearchController = TextEditingController();
 
   File? _profileImage;
   PlatformFile? _studentDocument;
@@ -36,10 +50,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _universitySearchController.dispose();
+    _departmentSearchController.dispose();
     super.dispose();
   }
 
@@ -53,115 +71,545 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: Text(strings.registerTitle),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            // Avatar Picker (optional)
-            GestureDetector(
-              onTap: _showImageSourceDialog,
-              child: Stack(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: _buildStepContent(strings),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.glassWhite,
-                    backgroundImage:
-                        _profileImage != null ? FileImage(_profileImage!) : null,
-                    child: _profileImage == null
-                        ? const Icon(Icons.person, size: 40, color: Colors.white54)
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child:
-                          const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                  if (_currentStep > 0)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _currentStep--;
+                        });
+                      },
+                      child: const Text('Geri'),
+                    )
+                  else
+                    const SizedBox(width: 64),
+                  SizedBox(
+                    width: 160,
+                    child: CustomButton(
+                      text: _currentStep == 4
+                          ? strings.registerCompleteButton
+                          : 'İleri',
+                      isLoading: _isLoading,
+                      onPressed: () {
+                        if (_currentStep == 4) {
+                          _onRegisterPressed();
+                        } else {
+                          _goToNextStep(strings);
+                        }
+                      },
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 30),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            // Name Field
-            CustomTextField(
-              hintText: strings.registerNameHint,
-              prefixIcon: Icons.person_outline,
-              controller: _nameController,
-            ),
-            const SizedBox(height: 20),
+  Widget _buildStepContent(AppStrings strings) {
+    switch (_currentStep) {
+      case 0:
+        return _buildUniversityStep(strings);
+      case 1:
+        return _buildDepartmentStep(strings);
+      case 2:
+        return _buildNameStep(strings);
+      case 3:
+        return _buildGenderStep(strings);
+      case 4:
+      default:
+        return _buildAccountStep(strings);
+    }
+  }
 
-            // Upload ID Area (optional / informational)
-            // GestureDetector(
-            //   onTap: _pickStudentDocument,
-            //   child: _buildDashedUploadContainer(),
-            // ),
-            
-            // const SizedBox(height: 20),
-            
-            CustomTextField(
-              hintText: strings.registerEmailHint,
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              controller: _emailController,
+  Widget _buildUniversityStep(AppStrings strings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Üniversiteni Seç',
+          style: Theme.of(context)
+              .textTheme
+              .displayMedium
+              ?.copyWith(fontSize: 22),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _showUniversityBottomSheet(),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white30),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(height: 20),
-            CustomTextField(
-              hintText: strings.registerPasswordHint,
-              isPassword: true,
-              prefixIcon: Icons.lock_outline,
-              controller: _passwordController,
-            ),
-            const SizedBox(height: 20),
-            CustomTextField(
-              hintText: strings.registerPasswordConfirmHint,
-              isPassword: true,
-              prefixIcon: Icons.lock_outline,
-              controller: _confirmPasswordController,
-            ),
-            const SizedBox(height: 20),
-            
-            // Terms Checkbox
-            Row(
+            child: Row(
               children: [
-                Checkbox(
-                  value: _termsAccepted,
-                  activeColor: AppColors.primary,
-                  side: const BorderSide(color: Colors.white54),
-                  onChanged: (val) {
-                    setState(() {
-                      _termsAccepted = val ?? false;
-                    });
-                  },
-                ),
+                const Icon(Icons.school_outlined, color: Colors.white70),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    strings.registerTermsText,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    _selectedUniversity ?? 'Üniversite seçiniz',
+                    style: TextStyle(
+                      color: _selectedUniversity != null 
+                          ? Colors.white 
+                          : Colors.white70,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
+                const Icon(Icons.arrow_drop_down, color: Colors.white70),
               ],
             ),
-            
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: CustomButton(
-                text: strings.registerCompleteButton,
-                onPressed: _onRegisterPressed,
-                isLoading: _isLoading,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showUniversityBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black87,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.8,
+            maxChildSize: 0.95,
+            minChildSize: 0.5,
+            expand: false,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Column(
+                  children: [
+                    // Handle bar
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white30,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    // Search bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        controller: _universitySearchController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Üniversite ara',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                          filled: true,
+                          fillColor: Colors.white10,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white30),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: AppColors.primary),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setModalState(() {});
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // University list
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: universities.length,
+                        itemBuilder: (context, index) {
+                          final university = universities[index];
+                          final isSelected = university == _selectedUniversity;
+                          final searchQuery = _universitySearchController.text.toLowerCase();
+                          
+                          // Filter based on search
+                          if (searchQuery.isNotEmpty && 
+                              !university.toLowerCase().contains(searchQuery)) {
+                            return const SizedBox.shrink();
+                          }
+                          
+                          return ListTile(
+                            title: Text(
+                              university,
+                              style: TextStyle(
+                                color: isSelected ? AppColors.primary : Colors.white,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                            trailing: isSelected 
+                                ? const Icon(Icons.check, color: AppColors.primary)
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                _selectedUniversity = university;
+                              });
+                              _universitySearchController.clear();
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDepartmentStep(AppStrings strings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Bölümünü Seç',
+          style: Theme.of(context)
+              .textTheme
+              .displayMedium
+              ?.copyWith(fontSize: 22),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _showDepartmentBottomSheet(),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white30),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_balance_outlined, color: Colors.white70),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _selectedDepartment ?? 'Bölüm seçiniz',
+                    style: TextStyle(
+                      color: _selectedDepartment != null 
+                          ? Colors.white 
+                          : Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.arrow_drop_down, color: Colors.white70),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDepartmentBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black87,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.8,
+            maxChildSize: 0.95,
+            minChildSize: 0.5,
+            expand: false,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Column(
+                  children: [
+                    // Handle bar
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white30,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    // Search bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        controller: _departmentSearchController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Bölüm ara',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                          filled: true,
+                          fillColor: Colors.white10,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white30),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: AppColors.primary),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setModalState(() {});
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Department list
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: departments.length,
+                        itemBuilder: (context, index) {
+                          final department = departments[index];
+                          final isSelected = department == _selectedDepartment;
+                          final searchQuery = _departmentSearchController.text.toLowerCase();
+                          
+                          // Filter based on search
+                          if (searchQuery.isNotEmpty && 
+                              !department.toLowerCase().contains(searchQuery)) {
+                            return const SizedBox.shrink();
+                          }
+                          
+                          return ListTile(
+                            title: Text(
+                              department,
+                              style: TextStyle(
+                                color: isSelected ? AppColors.primary : Colors.white,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                            trailing: isSelected 
+                                ? const Icon(Icons.check, color: AppColors.primary)
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                _selectedDepartment = department;
+                              });
+                              _departmentSearchController.clear();
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNameStep(AppStrings strings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Ad ve Soyad',
+          style: Theme.of(context)
+              .textTheme
+              .displayMedium
+              ?.copyWith(fontSize: 22),
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          hintText: 'Adınız',
+          prefixIcon: Icons.person_outline,
+          controller: _firstNameController,
+        ),
+        const SizedBox(height: 20),
+        CustomTextField(
+          hintText: 'Soyadınız',
+          prefixIcon: Icons.badge_outlined,
+          controller: _lastNameController,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderStep(AppStrings strings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Cinsiyetiniz',
+          style: Theme.of(context)
+              .textTheme
+              .displayMedium
+              ?.copyWith(fontSize: 22),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedGender = 'male';
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: _selectedGender == 'male'
+                        ? AppColors.primary
+                        : Colors.white30,
+                  ),
+                ),
+                child: const Text('Erkek'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedGender = 'female';
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: _selectedGender == 'female'
+                        ? AppColors.primary
+                        : Colors.white30,
+                  ),
+                ),
+                child: const Text('Kadın'),
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
+  }
+
+  Widget _buildAccountStep(AppStrings strings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Hesap Bilgileri',
+          style: Theme.of(context)
+              .textTheme
+              .displayMedium
+              ?.copyWith(fontSize: 22),
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          hintText: 'Kullanıcı adı',
+          prefixIcon: Icons.alternate_email,
+          controller: _usernameController,
+        ),
+        const SizedBox(height: 20),
+        CustomTextField(
+          hintText: strings.registerEmailHint,
+          prefixIcon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+          controller: _emailController,
+        ),
+        const SizedBox(height: 20),
+        CustomTextField(
+          hintText: strings.registerPasswordHint,
+          isPassword: true,
+          prefixIcon: Icons.lock_outline,
+          controller: _passwordController,
+        ),
+        const SizedBox(height: 20),
+        CustomTextField(
+          hintText: strings.registerPasswordConfirmHint,
+          isPassword: true,
+          prefixIcon: Icons.lock_outline,
+          controller: _confirmPasswordController,
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Checkbox(
+              value: _termsAccepted,
+              activeColor: AppColors.primary,
+              side: const BorderSide(color: Colors.white54),
+              onChanged: (val) {
+                setState(() {
+                  _termsAccepted = val ?? false;
+                });
+              },
+            ),
+            Expanded(
+              child: Text(
+                strings.registerTermsText,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _goToNextStep(AppStrings strings) {
+    if (_currentStep == 0 && _selectedUniversity == null) {
+      _showErrorDialog('Lütfen üniversitenizi seçin.');
+      return;
+    }
+    if (_currentStep == 1 && _selectedDepartment == null) {
+      _showErrorDialog('Lütfen bölümünüzü seçin.');
+      return;
+    }
+    if (_currentStep == 2 && (_firstNameController.text.trim().isEmpty ||
+        _lastNameController.text.trim().isEmpty)) {
+      _showErrorDialog('Lütfen ad ve soyadınızı doldurun.');
+      return;
+    }
+    if (_currentStep == 3 && _selectedGender == null) {
+      _showErrorDialog('Lütfen cinsiyetinizi seçin.');
+      return;
+    }
+
+    setState(() {
+      _currentStep = (_currentStep + 1).clamp(0, 4);
+    });
   }
 
   Widget _buildDashedUploadContainer() {
@@ -259,12 +707,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _onRegisterPressed() async {
     final strings = AppStringsProvider.of(context);
-    final name = _nameController.text.trim();
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final name = '$firstName $lastName'.trim();
     final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    if (_selectedUniversity == null || _selectedDepartment == null) {
+      _showErrorDialog('Lütfen üniversite ve bölüm bilgilerinizi doldurun.');
+      return;
+    }
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        username.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       _showErrorDialog(strings.registerErrorFillAll);
       return;
     }
@@ -322,6 +782,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'email': email,
         'name': name,
         'university_domain': universityDomain,
+        'university': _selectedUniversity,
+        'department': _selectedDepartment,
+        'gender': _selectedGender,
+        'username': username,
         'is_verified': false,
         'level': 1,
         'created_at': FieldValue.serverTimestamp(),
@@ -367,8 +831,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       barrierDismissible: true,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Colors.black : Colors.white,
           insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 200),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Padding(
@@ -376,24 +841,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.highlight_off,
-                  color: Colors.red,
+                  color: isDark ? Colors.redAccent : Colors.red,
                   size: 60,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   strings.registerDialogTitleError,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   message,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),

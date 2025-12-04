@@ -8,6 +8,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/campusapp" />
+            android:src="@mipmap/ic_launcher" />
     </item>
 </layer-list>

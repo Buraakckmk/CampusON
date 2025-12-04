@@ -412,22 +412,9 @@ class _HomeScreenState extends State<HomeScreen> {
       extendBody: true, // Important for floating transparent navbar
       body: Stack(
         children: [
-          // Background Gradient
+          // Background color (no gradient)
           Container(
-            decoration: isDark
-                ? const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF0F172A),
-                        Color(0xFF1E293B),
-                      ],
-                    ),
-                  )
-                : const BoxDecoration(
-                    color: Colors.white,
-                  ),
+            color: isDark ? Colors.black : Colors.white,
           ),
           SafeArea(
             bottom: false,

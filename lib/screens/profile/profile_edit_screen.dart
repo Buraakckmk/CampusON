@@ -55,7 +55,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: Colors.black,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             border: Border.all(color: Colors.white10),
           ),

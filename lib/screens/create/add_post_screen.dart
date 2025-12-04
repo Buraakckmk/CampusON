@@ -110,15 +110,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: isDark
-            ? const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                ),
-              )
-            : const BoxDecoration(color: Colors.white),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.black : Colors.white,
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
